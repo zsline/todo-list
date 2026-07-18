@@ -14,7 +14,7 @@
     --border-color-active: rgba(124, 58, 237, 0.4);
 
     --text-primary: hsl(210, 40%, 98%);
-    --text-muted: hsl(220, 26%, 18%);
+    --text-muted: hsl(220deg 26.38% 51%);
     --text-disabled: hsl(215, 12%, 45%);
 
     --accent-primary: hsl(263, 90%, 62%);
