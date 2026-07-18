@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenTodo — Умный список задач</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar: Tabs and Categories -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">✓</span>
+                    <span class="logo-text">ZenTodo</span>
+                </div>
+                <button id="btn-close-sidebar" class="btn-close-sidebar" title="Закрыть меню">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <nav class="tabs-nav">
+                <div class="section-title">Списки задач</div>
+                <ul id="tabs-list" class="tabs-list">
+                    <!-- Dynamic tabs will be inserted here -->
+                </ul>
+                <div class="add-tab-container">
+                    <button id="btn-add-tab-prompt" class="btn-add-tab-prompt">
+                        <i data-lucide="plus"></i>
+                        <span>Создать список</span>
+                    </button>
+                    <form id="form-add-tab" class="form-add-tab hidden">
+                        <input type="text" id="input-new-tab" placeholder="Название списка..." maxlength="20" required autocomplete="off">
+                        <div class="form-add-tab-actions">
+                            <button type="submit" class="btn-confirm-tab" title="Создать"><i data-lucide="check"></i></button>
+                            <button type="button" id="btn-cancel-tab" class="btn-cancel-tab" title="Отмена"><i data-lucide="x"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+
+            <nav class="tabs-nav notebooks-nav">
+                <div class="section-title">Блокноты</div>
+                <ul id="notebooks-list" class="tabs-list">
+                    <!-- Dynamic notebooks will be inserted here -->
+                </ul>
+                <div class="add-tab-container">
+                    <button id="btn-add-notebook-prompt" class="btn-add-tab-prompt">
+                        <i data-lucide="plus"></i>
+                        <span>Создать блокнот</span>
+                    </button>
+                    <form id="form-add-notebook" class="form-add-tab hidden">
+                        <input type="text" id="input-new-notebook" placeholder="Название блокнота..." maxlength="20" required autocomplete="off">
+                        <div class="form-add-tab-actions">
+                            <button type="submit" class="btn-confirm-tab" title="Создать"><i data-lucide="check"></i></button>
+                            <button type="button" id="btn-cancel-notebook" class="btn-cancel-tab" title="Отмена"><i data-lucide="x"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="btn-toggle-theme" class="btn-toggle-theme">
+                    <i data-lucide="sun" class="icon-sun"></i>
+                    <i data-lucide="moon" class="icon-moon hidden"></i>
+                    <span>Светлая тема</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content: Task Management -->
+        <main class="main-content">
+            <!-- Header of the active tab -->
+            <header class="content-header">
+                <div class="header-left">
+                    <button id="btn-open-sidebar" class="btn-open-sidebar" title="Открыть меню">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="header-title-area">
+                        <h1 id="active-tab-title">Задачи</h1>
+                        <p id="active-tab-subtitle">Управляйте вашими делами на сегодня</p>
+                    </div>
+                </div>
+                <!-- Progress bar -->
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Прогресс списка</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- View Switcher (Tasks / Notes) -->
+            <div class="view-switcher" id="view-switcher">
+                <button class="btn-switch-view active" data-view="tasks">
+                    <i data-lucide="check-square"></i>
+                    <span>Задачи</span>
+                </button>
+                <button class="btn-switch-view" data-view="notes">
+                    <i data-lucide="file-text"></i>
+                    <span>Заметки</span>
+                    <span class="tab-badge hidden" id="notes-count-badge"></span>
+                </button>
+            </div>
+
+            <section class="task-controls" id="task-controls">
+                <form id="form-add-todo" class="form-add-todo">
+                    <div class="input-wrapper">
+                        <i data-lucide="plus-circle" class="input-icon"></i>
+                        <input type="text" id="input-new-todo" placeholder="Добавить новую задачу в этот список..." required autocomplete="off">
+                    </div>
+                    
+                    <div class="priority-select-container" id="priority-select-container">
+                        <button type="button" class="btn-priority-select" id="btn-priority-select" title="Выбрать приоритет">
+                            <i data-lucide="flag" class="priority-flag-icon icon-none"></i>
+                            <span id="selected-priority-text" class="priority-label">Обычный</span>
+                            <i data-lucide="chevron-down" class="chevron-icon"></i>
+                        </button>
+                        <div class="priority-dropdown-menu hidden" id="priority-dropdown-menu">
+                            <div class="priority-dropdown-option" data-priority="high">
+                                <i data-lucide="flag" class="priority-flag-icon icon-high"></i>
+                                <span>Высокий</span>
+                            </div>
+                            <div class="priority-dropdown-option" data-priority="medium">
+                                <i data-lucide="flag" class="priority-flag-icon icon-medium"></i>
+                                <span>Средний</span>
+                            </div>
+                            <div class="priority-dropdown-option active" data-priority="none">
+                                <i data-lucide="flag" class="priority-flag-icon icon-none"></i>
+                                <span>Обычный</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-add-todo">
+                        <span>Добавить</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+                
+                <div class="filters-bar">
+                    <div class="filter-buttons">
+                        <button class="btn-filter active" data-filter="all">Все</button>
+                        <button class="btn-filter" data-filter="active">Активные</button>
+                        <button class="btn-filter" data-filter="completed">Выполненные</button>
+                    </div>
+                    <button id="btn-clear-completed" class="btn-clear-completed hidden">
+                        <i data-lucide="trash-2"></i>
+                        <span>Очистить выполненные</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Tasks List Area -->
+            <section class="tasks-container">
+                <ul id="tasks-list" class="tasks-list">
+                    <!-- Dynamic tasks will be inserted here -->
+                </ul>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-state-icon">
+                        <i data-lucide="clipboard-check"></i>
+                    </div>
+                    <h3>Здесь пока ничего нет</h3>
+                    <p>Добавьте первую задачу или переключите фильтр, чтобы начать день продуктивно.</p>
+                </div>
+            </section>
+
+            <!-- Notes Controls -->
+            <section class="notes-controls hidden" id="notes-controls">
+                <form id="form-add-note" class="form-add-note">
+                    <div class="note-inputs-wrapper">
+                        <input type="text" id="input-note-title" placeholder="Заголовок заметки..." autocomplete="off" maxlength="100">
+                        <textarea id="input-note-content" placeholder="Текст заметки..." required autocomplete="off" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="note-form-footer">
+                        <div class="note-color-container" id="note-color-container">
+                            <button type="button" class="btn-note-color-select" id="btn-note-color-select" title="Выбрать цвет">
+                                <span class="color-dot color-none"></span>
+                                <span id="selected-note-color-text" class="color-label">Обычный</span>
+                                <i data-lucide="chevron-down" class="chevron-icon"></i>
+                            </button>
+                            <div class="note-color-dropdown hidden" id="note-color-dropdown">
+                                <div class="note-color-option active" data-color="none">
+                                    <span class="color-dot color-none"></span>
+                                    <span>Обычный</span>
+                                </div>
+                                <div class="note-color-option" data-color="purple">
+                                    <span class="color-dot color-purple"></span>
+                                    <span>Фиолетовый</span>
+                                </div>
+                                <div class="note-color-option" data-color="blue">
+                                    <span class="color-dot color-blue"></span>
+                                    <span>Синий</span>
+                                </div>
+                                <div class="note-color-option" data-color="green">
+                                    <span class="color-dot color-green"></span>
+                                    <span>Зеленый</span>
+                                </div>
+                                <div class="note-color-option" data-color="yellow">
+                                    <span class="color-dot color-yellow"></span>
+                                    <span>Желтый</span>
+                                </div>
+                                <div class="note-color-option" data-color="red">
+                                    <span class="color-dot color-red"></span>
+                                    <span>Красный</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-add-note">
+                            <span>Добавить заметку</span>
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Notes Grid Area -->
+            <section class="notes-container hidden" id="notes-container">
+                <div id="notes-grid" class="notes-grid">
+                    <!-- Dynamic notes will be inserted here -->
+                </div>
+                
+                <!-- Empty Notes State -->
+                <div id="empty-notes-state" class="empty-state hidden">
+                    <div class="empty-state-icon">
+                        <i data-lucide="sticky-note"></i>
+                    </div>
+                    <h3>Здесь пока нет заметок</h3>
+                    <p>Добавьте первую заметку, чтобы сохранить важные мысли.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
