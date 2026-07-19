@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,17 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2pdf.js for client-side PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar: Tabs and Categories -->
@@ -26,7 +32,7 @@
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            
+
             <nav class="tabs-nav">
                 <div class="section-title">Списки задач</div>
                 <ul id="tabs-list" class="tabs-list">
@@ -38,10 +44,13 @@
                         <span>Создать список</span>
                     </button>
                     <form id="form-add-tab" class="form-add-tab hidden">
-                        <input type="text" id="input-new-tab" placeholder="Название списка..." maxlength="20" required autocomplete="off">
+                        <input type="text" id="input-new-tab" placeholder="Название списка..." maxlength="20" required
+                            autocomplete="off">
                         <div class="form-add-tab-actions">
-                            <button type="submit" class="btn-confirm-tab" title="Создать"><i data-lucide="check"></i></button>
-                            <button type="button" id="btn-cancel-tab" class="btn-cancel-tab" title="Отмена"><i data-lucide="x"></i></button>
+                            <button type="submit" class="btn-confirm-tab" title="Создать"><i
+                                    data-lucide="check"></i></button>
+                            <button type="button" id="btn-cancel-tab" class="btn-cancel-tab" title="Отмена"><i
+                                    data-lucide="x"></i></button>
                         </div>
                     </form>
                 </div>
@@ -58,16 +67,23 @@
                         <span>Создать блокнот</span>
                     </button>
                     <form id="form-add-notebook" class="form-add-tab hidden">
-                        <input type="text" id="input-new-notebook" placeholder="Название блокнота..." maxlength="20" required autocomplete="off">
+                        <input type="text" id="input-new-notebook" placeholder="Название блокнота..." maxlength="20"
+                            required autocomplete="off">
                         <div class="form-add-tab-actions">
-                            <button type="submit" class="btn-confirm-tab" title="Создать"><i data-lucide="check"></i></button>
-                            <button type="button" id="btn-cancel-notebook" class="btn-cancel-tab" title="Отмена"><i data-lucide="x"></i></button>
+                            <button type="submit" class="btn-confirm-tab" title="Создать"><i
+                                    data-lucide="check"></i></button>
+                            <button type="button" id="btn-cancel-notebook" class="btn-cancel-tab" title="Отмена"><i
+                                    data-lucide="x"></i></button>
                         </div>
                     </form>
                 </div>
             </nav>
-            
+
             <div class="sidebar-footer">
+                <button id="btn-export-pdf" class="btn-export-pdf" title="Сохранить отчет в PDF">
+                    <i data-lucide="save"></i>
+                    <span>Сохранить</span>
+                </button>
                 <button id="btn-toggle-theme" class="btn-toggle-theme">
                     <i data-lucide="sun" class="icon-sun"></i>
                     <i data-lucide="moon" class="icon-moon hidden"></i>
@@ -118,11 +134,13 @@
                 <form id="form-add-todo" class="form-add-todo">
                     <div class="input-wrapper">
                         <i data-lucide="plus-circle" class="input-icon"></i>
-                        <input type="text" id="input-new-todo" placeholder="Добавить новую задачу в этот список..." required autocomplete="off">
+                        <input type="text" id="input-new-todo" placeholder="Добавить новую задачу в этот список..."
+                            required autocomplete="off">
                     </div>
-                    
+
                     <div class="priority-select-container" id="priority-select-container">
-                        <button type="button" class="btn-priority-select" id="btn-priority-select" title="Выбрать приоритет">
+                        <button type="button" class="btn-priority-select" id="btn-priority-select"
+                            title="Выбрать приоритет">
                             <i data-lucide="flag" class="priority-flag-icon icon-none"></i>
                             <span id="selected-priority-text" class="priority-label">Обычный</span>
                             <i data-lucide="chevron-down" class="chevron-icon"></i>
@@ -148,7 +166,7 @@
                         <i data-lucide="arrow-right"></i>
                     </button>
                 </form>
-                
+
                 <div class="filters-bar">
                     <div class="filter-buttons">
                         <button class="btn-filter active" data-filter="all">Все</button>
@@ -167,7 +185,7 @@
                 <ul id="tasks-list" class="tasks-list">
                     <!-- Dynamic tasks will be inserted here -->
                 </ul>
-                
+
                 <!-- Empty State -->
                 <div id="empty-state" class="empty-state hidden">
                     <div class="empty-state-icon">
@@ -182,13 +200,16 @@
             <section class="notes-controls hidden" id="notes-controls">
                 <form id="form-add-note" class="form-add-note">
                     <div class="note-inputs-wrapper">
-                        <input type="text" id="input-note-title" placeholder="Заголовок заметки..." autocomplete="off" maxlength="100">
-                        <textarea id="input-note-content" placeholder="Текст заметки..." required autocomplete="off" rows="3"></textarea>
+                        <input type="text" id="input-note-title" placeholder="Заголовок заметки..." autocomplete="off"
+                            maxlength="100">
+                        <textarea id="input-note-content" placeholder="Текст заметки..." required autocomplete="off"
+                            rows="3"></textarea>
                     </div>
-                    
+
                     <div class="note-form-footer">
                         <div class="note-color-container" id="note-color-container">
-                            <button type="button" class="btn-note-color-select" id="btn-note-color-select" title="Выбрать цвет">
+                            <button type="button" class="btn-note-color-select" id="btn-note-color-select"
+                                title="Выбрать цвет">
                                 <span class="color-dot color-none"></span>
                                 <span id="selected-note-color-text" class="color-label">Обычный</span>
                                 <i data-lucide="chevron-down" class="chevron-icon"></i>
@@ -234,7 +255,7 @@
                 <div id="notes-grid" class="notes-grid">
                     <!-- Dynamic notes will be inserted here -->
                 </div>
-                
+
                 <!-- Empty Notes State -->
                 <div id="empty-notes-state" class="empty-state hidden">
                     <div class="empty-state-icon">
@@ -250,4 +271,5 @@
     <!-- JavaScript -->
     <script src="app.js"></script>
 </body>
+
 </html>

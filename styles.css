@@ -432,6 +432,34 @@ input {
 .sidebar-footer {
     border-top: 1px solid var(--border-color);
     padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-export-pdf {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    color: white;
+    background: var(--accent-gradient);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    font-weight: 500;
+}
+
+.btn-export-pdf:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px var(--accent-glow);
+}
+
+.btn-export-pdf:active {
+    transform: translateY(0);
 }
 
 .btn-toggle-theme {
@@ -1616,6 +1644,19 @@ body.light-theme .note-edit-actions {
 .btn-edit-save:hover {
     opacity: 0.9;
     transform: scale(1.05);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 
 /* Touch responsiveness */
