@@ -1209,6 +1209,57 @@ body.light-theme .todo-item.completed {
     color: white;
 }
 
+.view-switcher-separator {
+    width: 1px;
+    background: var(--border-color);
+    align-self: stretch;
+    margin: 4px 2px;
+}
+
+.btn-export-list-pdf {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-export-list-pdf i {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-export-list-pdf:hover {
+    color: var(--text-primary);
+    background: var(--border-color);
+}
+
+.btn-export-list-pdf.loading {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-export-list-pdf.success {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 4px 12px var(--success-bg);
+}
+
+@media (max-width: 576px) {
+    .btn-export-list-pdf span {
+        display: none;
+    }
+    .btn-export-list-pdf {
+        padding: 8px;
+    }
+}
+
 /* Notes Controls */
 .notes-controls {
     margin-bottom: 24px;

@@ -97,7 +97,8 @@ const DOM = {
     formAddNotebook: document.getElementById('form-add-notebook'),
     inputNewNotebook: document.getElementById('input-new-notebook'),
     btnCancelNotebook: document.getElementById('btn-cancel-notebook'),
-    btnExportPdf: document.getElementById('btn-export-pdf')
+    btnExportPdf: document.getElementById('btn-export-pdf'),
+    btnExportListPdf: document.getElementById('btn-export-list-pdf')
 };
 
 // Map default tab names to Lucide icons
@@ -1046,6 +1047,11 @@ function setupEventListeners() {
     if (DOM.btnExportPdf) {
         DOM.btnExportPdf.addEventListener('click', exportToPDF);
     }
+
+    // Export List PDF click
+    if (DOM.btnExportListPdf) {
+        DOM.btnExportListPdf.addEventListener('click', exportListToPDF);
+    }
 }
 
 // PDF Export Function
@@ -1515,6 +1521,440 @@ function exportToPDF() {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
         btn.classList.remove('loading');
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+}
+
+// Export Single List to PDF
+function exportListToPDF() {
+    const btn = DOM.btnExportListPdf;
+    if (!btn || btn.classList.contains('loading')) return;
+    
+    // Save original button content
+    const originalHTML = btn.innerHTML;
+    
+    // Check if html2pdf library is available
+    if (typeof html2pdf === 'undefined') {
+        alert('Библиотека для генерации PDF еще загружается. Пожалуйста, подождите несколько секунд и попробуйте снова.');
+        return;
+    }
+    
+    // Set loading state
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="animate-spin"></i><span>Генерация...</span>`;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    const activeTab = state.activeTab;
+    const isNotebook = state.notebooks.includes(activeTab);
+    
+    // Calculate statistics for the active tab
+    const tabTodos = state.todos.filter(t => t.tab === activeTab);
+    const tabNotes = state.notes.filter(n => n.tab === activeTab);
+    
+    const totalTasksCount = tabTodos.length;
+    const completedTasksCount = tabTodos.filter(t => t.completed).length;
+    const activeTasksCount = totalTasksCount - completedTasksCount;
+    const completionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+    const totalNotesCount = tabNotes.length;
+    
+    // Date formatting
+    const genDate = new Date().toLocaleString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Construct the HTML for the PDF
+    const element = document.createElement('div');
+    element.className = 'pdf-export-wrapper';
+    
+    let contentHTML = `
+    <div class="pdf-report">
+        <style>
+            .pdf-report {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                color: #1e293b;
+                line-height: 1.5;
+                padding: 10px;
+                background: #ffffff;
+            }
+            .pdf-header {
+                border-bottom: 2px solid #7c3aed;
+                padding-bottom: 16px;
+                margin-bottom: 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .pdf-logo {
+                font-family: 'Outfit', sans-serif;
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #7c3aed;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .pdf-logo-box {
+                background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+                color: white;
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 1.1rem;
+            }
+            .pdf-meta {
+                text-align: right;
+                font-size: 0.8rem;
+                color: #64748b;
+            }
+            .pdf-title {
+                font-family: 'Outfit', sans-serif;
+                font-size: 2rem;
+                font-weight: 800;
+                margin-bottom: 6px;
+                color: #0f172a;
+                margin-top: 0;
+            }
+            .pdf-subtitle {
+                font-size: 1rem;
+                color: #475569;
+                margin-bottom: 24px;
+                margin-top: 0;
+            }
+            .pdf-stats-grid {
+                display: flex;
+                gap: 16px;
+                margin-bottom: 30px;
+                width: 100%;
+            }
+            .pdf-stat-card {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                padding: 12px;
+                border-radius: 8px;
+                flex: 1;
+                text-align: center;
+            }
+            .pdf-stat-val {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #7c3aed;
+                margin-bottom: 2px;
+            }
+            .pdf-stat-lbl {
+                font-size: 0.75rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .pdf-section {
+                margin-bottom: 30px;
+                page-break-inside: avoid;
+            }
+            .pdf-section-title {
+                font-family: 'Outfit', sans-serif;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #0f172a;
+                border-bottom: 1px solid #e2e8f0;
+                padding-bottom: 6px;
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-top: 0;
+            }
+            .pdf-badge-category {
+                font-size: 0.7rem;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+                background: #f1f5f9;
+                color: #475569;
+                margin-left: auto;
+            }
+            .pdf-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 16px;
+            }
+            .pdf-table th {
+                background: #f8fafc;
+                text-align: left;
+                padding: 8px 10px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #475569;
+                border-bottom: 2px solid #e2e8f0;
+            }
+            .pdf-table td {
+                padding: 10px 10px;
+                font-size: 0.85rem;
+                border-bottom: 1px solid #f1f5f9;
+                color: #334155;
+            }
+            .pdf-table tr {
+                page-break-inside: avoid;
+            }
+            .pdf-badge-priority {
+                font-size: 0.7rem;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+                display: inline-block;
+            }
+            .pdf-badge-priority.high {
+                background: #ffe4e6;
+                color: #e11d48;
+            }
+            .pdf-badge-priority.medium {
+                background: #fef3c7;
+                color: #d97706;
+            }
+            .pdf-badge-priority.none {
+                background: #f1f5f9;
+                color: #64748b;
+            }
+            .pdf-badge-status {
+                font-size: 0.7rem;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+                display: inline-block;
+            }
+            .pdf-badge-status.completed {
+                background: #dcfce7;
+                color: #15803d;
+            }
+            .pdf-badge-status.active {
+                background: #f1f5f9;
+                color: #475569;
+            }
+            .pdf-notes-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .pdf-note-card {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-left: 4px solid #cbd5e1;
+                padding: 12px;
+                border-radius: 6px;
+                page-break-inside: avoid;
+            }
+            .pdf-note-card.color-purple { border-left-color: #8b5cf6; }
+            .pdf-note-card.color-blue { border-left-color: #3b82f6; }
+            .pdf-note-card.color-green { border-left-color: #10b981; }
+            .pdf-note-card.color-yellow { border-left-color: #f59e0b; }
+            .pdf-note-card.color-red { border-left-color: #ef4444; }
+
+            .pdf-note-title {
+                font-family: 'Outfit', sans-serif;
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #0f172a;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            .pdf-note-content {
+                font-size: 0.85rem;
+                color: #334155;
+                white-space: pre-wrap;
+                margin-bottom: 6px;
+                word-break: break-word;
+            }
+            .pdf-note-meta {
+                font-size: 0.7rem;
+                color: #94a3b8;
+            }
+        </style>
+
+        <div class="pdf-header">
+            <div class="pdf-logo">
+                <div class="pdf-logo-box">✓</div>
+                <span>ZenTodo</span>
+            </div>
+            <div class="pdf-meta">
+                <div>Дата генерации: ${genDate}</div>
+                <div>Создано в ZenTodo</div>
+            </div>
+        </div>
+
+        <h1 class="pdf-title">Отчет по списку: ${escapeHTML(activeTab)}</h1>
+        <p class="pdf-subtitle">Список задач ${!isNotebook ? 'и заметок ' : ''}категории "${escapeHTML(activeTab)}"</p>
+
+        <div class="pdf-stats-grid">
+            ${!isNotebook ? `
+            <div class="pdf-stat-card">
+                <div class="pdf-stat-val">${totalTasksCount}</div>
+                <div class="pdf-stat-lbl">Всего задач</div>
+            </div>
+            <div class="pdf-stat-card">
+                <div class="pdf-stat-val">${completionRate}%</div>
+                <div class="pdf-stat-lbl">Выполнено</div>
+            </div>
+            ` : ''}
+            <div class="pdf-stat-card">
+                <div class="pdf-stat-val">${totalNotesCount}</div>
+                <div class="pdf-stat-lbl">Заметок</div>
+            </div>
+        </div>
+    `;
+
+    // Handle empty list case
+    if (totalTasksCount === 0 && totalNotesCount === 0) {
+        contentHTML += `
+            <div style="text-align: center; padding: 40px 20px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 20px;">
+                <div style="font-size: 2.5rem; margin-bottom: 12px;">📋</div>
+                <h3 style="font-size: 1.15rem; font-weight: 600; color: #0f172a; margin-bottom: 6px; margin-top: 0;">Список пуст</h3>
+                <p style="margin: 0; font-size: 0.9rem;">В этом списке пока нет ни одной задачи или заметки.</p>
+            </div>
+        `;
+    } else {
+        // Render Tasks Section if not empty and not a notebook
+        if (!isNotebook) {
+            contentHTML += `
+            <div class="pdf-section">
+                <h2 class="pdf-section-title">
+                    <span>📁</span> Задачи списка
+                    <span class="pdf-badge-category">Задачи</span>
+                </h2>
+            `;
+            
+            if (totalTasksCount > 0) {
+                contentHTML += `
+                <table class="pdf-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Задача</th>
+                            <th style="width: 15%;">Приоритет</th>
+                            <th style="width: 15%;">Статус</th>
+                            <th style="width: 20%;">Создано</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+                
+                // Sort tasks: Active first, then Completed, then by priority weight, then by creation date descending
+                const sortedTodos = [...tabTodos].sort((a, b) => {
+                    if (a.completed !== b.completed) {
+                        return a.completed ? 1 : -1;
+                    }
+                    const weightA = priorityWeight[a.priority] || 1;
+                    const weightB = priorityWeight[b.priority] || 1;
+                    if (weightA !== weightB) {
+                        return weightB - weightA;
+                    }
+                    return b.createdAt - a.createdAt;
+                });
+                
+                sortedTodos.forEach(todo => {
+                    const priorityText = priorityLabels[todo.priority] || 'Обычный';
+                    const statusText = todo.completed ? 'Выполнено' : 'Активно';
+                    const statusClass = todo.completed ? 'completed' : 'active';
+                    const priorityClass = todo.priority || 'none';
+                    
+                    contentHTML += `
+                        <tr>
+                            <td style="font-weight: 500; ${todo.completed ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${escapeHTML(todo.text)}</td>
+                            <td><span class="pdf-badge-priority ${priorityClass}">${priorityText}</span></td>
+                            <td><span class="pdf-badge-status ${statusClass}">${statusText}</span></td>
+                            <td style="font-size: 0.8rem; color: #64748b;">${formatDate(todo.createdAt)}</td>
+                        </tr>
+                    `;
+                });
+                
+                contentHTML += `
+                    </tbody>
+                </table>
+                `;
+            } else {
+                contentHTML += `<p style="font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 16px;">В этом списке задач пока нет.</p>`;
+            }
+            contentHTML += `</div>`;
+        }
+
+        // Render Notes Section if any
+        if (totalNotesCount > 0) {
+            contentHTML += `
+            <div class="pdf-section">
+                <h2 class="pdf-section-title">
+                    <span>📖</span> Заметки списка
+                    <span class="pdf-badge-category">Заметки</span>
+                </h2>
+                <div class="pdf-notes-list">
+            `;
+            
+            const sortedNotes = [...tabNotes].sort((a, b) => b.createdAt - a.createdAt);
+            sortedNotes.forEach(note => {
+                contentHTML += `
+                    <div class="pdf-note-card color-${note.color || 'none'}">
+                        ${note.title ? `<div class="pdf-note-title">${escapeHTML(note.title)}</div>` : ''}
+                        <div class="pdf-note-content">${escapeHTML(note.content)}</div>
+                        <div class="pdf-note-meta">Создана: ${formatDate(note.createdAt)}</div>
+                    </div>
+                `;
+            });
+            
+            contentHTML += `
+                </div>
+            </div>
+            `;
+        }
+    }
+    
+    contentHTML += `</div>`;
+    element.innerHTML = contentHTML;
+    
+    // Set configuration for html2pdf
+    const cleanDateString = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
+    const options = {
+        margin: [10, 10, 10, 10],
+        filename: `ZenTodo_Список_${activeTab}_${cleanDateString}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Generate and download PDF
+    html2pdf().set(options).from(element).save().then(() => {
+        // Success state
+        btn.innerHTML = `<i data-lucide="check"></i><span>Готово!</span>`;
+        btn.classList.add('success');
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
+        setTimeout(() => {
+            // Restore button to original state
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.classList.remove('loading', 'success');
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }, 2000);
+    }).catch(err => {
+        console.error('Ошибка экспорта списка в PDF:', err);
+        alert('Произошла ошибка при экспорте списка в PDF. Пожалуйста, попробуйте еще раз.');
+        
+        // Restore button state
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+        btn.classList.remove('loading', 'success');
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
