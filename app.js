@@ -8,15 +8,10 @@ const defaultState = {
     notebooks: ['Идеи', 'Разное'],
     activeTab: 'Работа',
     todos: [
-        { id: '1', text: 'Подготовить отчет по проекту', completed: false, tab: 'Работа', createdAt: Date.now() - 3600000 * 2, priority: 'high' },
-        { id: '2', text: 'Созвон с командой в 15:00', completed: true, tab: 'Работа', createdAt: Date.now() - 3600000 * 4, priority: 'none' },
-        { id: '3', text: 'Купить подарки друзьям', completed: false, tab: 'Личное', createdAt: Date.now() - 3600000 * 24, priority: 'medium' },
-        { id: '4', text: 'Купить молоко и фрукты', completed: false, tab: 'Покупки', createdAt: Date.now(), priority: 'none' }
+
     ],
     notes: [
-        { id: 'n1', title: 'Идеи для проекта', content: '1. Использовать стек CSS Variables\n2. Реализовать стек на Grid и Flexbox', tab: 'Работа', createdAt: Date.now() - 3600000 * 5, color: 'purple' },
-        { id: 'n2', title: 'Список покупок расширенный', content: 'Не забыть взять пакеты на кассе', tab: 'Покупки', createdAt: Date.now() - 3600000 * 2, color: 'yellow' },
-        { id: 'n3', title: 'План поездки', content: 'Купить билеты, забронировать отель, составить маршрут', tab: 'Разное', createdAt: Date.now() - 3600000 * 10, color: 'blue' }
+
     ]
 };
 
