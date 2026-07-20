@@ -882,8 +882,8 @@ body.light-theme .btn-todo-priority:hover {
 
 .todo-item {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     padding: 16px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -893,6 +893,13 @@ body.light-theme .btn-todo-priority:hover {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.todo-item-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .todo-item.priority-menu-open {
@@ -998,6 +1005,203 @@ body.light-theme .todo-item.completed {
 .todo-item.completed .todo-text {
     color: var(--text-disabled);
     /* text-decoration: line-through; */
+}
+
+/* Comment Button and Badge */
+.btn-toggle-comments {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0 8px;
+    border-radius: var(--radius-md);
+    color: var(--text-disabled);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.btn-toggle-comments:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-color);
+}
+
+body.light-theme .btn-toggle-comments:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: var(--border-color);
+}
+
+.btn-toggle-comments.active {
+    color: var(--accent-primary);
+    background: var(--bg-active-tab);
+    border-color: var(--border-color-active);
+}
+
+.btn-toggle-comments.has-comments {
+    color: var(--accent-primary);
+}
+
+.comments-badge {
+    background: var(--accent-gradient);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    line-height: 1;
+}
+
+/* Comments Section Drawer */
+.todo-comments-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: slideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.todo-comments-section.hidden {
+    display: none;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.comments-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.empty-comments {
+    font-size: 0.85rem;
+    color: var(--text-disabled);
+    font-style: italic;
+    text-align: center;
+    padding: 6px 0;
+}
+
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+body.light-theme .comment-item {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.comment-item:hover {
+    border-color: var(--border-color-active);
+}
+
+.comment-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-text {
+    color: var(--text-primary);
+    word-break: break-word;
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.comment-date {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.btn-delete-comment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    color: var(--text-disabled);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.btn-delete-comment:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.form-add-comment {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 2px;
+}
+
+.input-new-comment {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.input-new-comment:focus {
+    border-color: var(--border-color-active);
+    background: var(--bg-card);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-add-comment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: var(--accent-gradient);
+    color: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.btn-add-comment:hover {
+    opacity: 0.95;
+    transform: scale(1.04);
+}
+
+.btn-add-comment:active {
+    transform: scale(0.98);
 }
 
 .btn-delete-todo {

@@ -21,6 +21,7 @@ let currentFormPriority = 'none'; // 'none', 'medium', 'high'
 let currentView = 'tasks'; // 'tasks' or 'notes'
 let currentNoteFormColor = 'none'; // 'none', 'purple', 'blue', 'green', 'yellow', 'red'
 let editingNoteId = null; // ID of the note currently being edited
+const expandedCommentsTodoIds = new Set(); // Set of todo IDs with expanded comments drawer
 
 const noteColorLabels = {
     none: 'Обычный',
@@ -132,6 +133,11 @@ function loadState() {
             if (!state.todos) {
                 state.todos = [];
             }
+            state.todos.forEach(todo => {
+                if (!todo.comments) {
+                    todo.comments = [];
+                }
+            });
             if (!state.notes) {
                 state.notes = [];
             }
@@ -452,40 +458,71 @@ function renderTasks() {
             
             const priority = todo.priority || 'none';
             const priorityText = priorityLabels[priority];
+            const comments = todo.comments || [];
+            const commentsCount = comments.length;
+            const isCommentsExpanded = expandedCommentsTodoIds.has(todo.id);
             
             li.innerHTML = `
-                <div class="todo-item-left">
-                    <label class="checkbox-container">
-                        <input type="checkbox" ${todo.completed ? 'checked' : ''}>
-                        <span class="checkmark">
-                            <i data-lucide="check"></i>
-                        </span>
-                    </label>
-                    <span class="todo-text">${escapeHTML(todo.text)}</span>
-                </div>
-                <div class="todo-item-actions">
-                    <div class="todo-priority-container">
-                        <button class="btn-todo-priority" title="Изменить приоритет (текущий: ${priorityText})">
-                            <i data-lucide="flag" class="priority-flag-icon icon-${priority}"></i>
+                <div class="todo-item-main">
+                    <div class="todo-item-left">
+                        <label class="checkbox-container">
+                            <input type="checkbox" ${todo.completed ? 'checked' : ''}>
+                            <span class="checkmark">
+                                <i data-lucide="check"></i>
+                            </span>
+                        </label>
+                        <span class="todo-text">${escapeHTML(todo.text)}</span>
+                    </div>
+                    <div class="todo-item-actions">
+                        <button class="btn-toggle-comments ${commentsCount > 0 ? 'has-comments' : ''} ${isCommentsExpanded ? 'active' : ''}" title="Комментарии (${commentsCount})">
+                            <i data-lucide="message-square"></i>
+                            ${commentsCount > 0 ? `<span class="comments-badge">${commentsCount}</span>` : ''}
                         </button>
-                        <div class="priority-dropdown-menu hidden">
-                            <div class="priority-dropdown-option ${priority === 'high' ? 'active' : ''}" data-priority="high">
-                                <i data-lucide="flag" class="priority-flag-icon icon-high"></i>
-                                <span>Высокий</span>
-                            </div>
-                            <div class="priority-dropdown-option ${priority === 'medium' ? 'active' : ''}" data-priority="medium">
-                                <i data-lucide="flag" class="priority-flag-icon icon-medium"></i>
-                                <span>Средний</span>
-                            </div>
-                            <div class="priority-dropdown-option ${priority === 'none' ? 'active' : ''}" data-priority="none">
-                                <i data-lucide="flag" class="priority-flag-icon icon-none"></i>
-                                <span>Обычный</span>
+                        <div class="todo-priority-container">
+                            <button class="btn-todo-priority" title="Изменить приоритет (текущий: ${priorityText})">
+                                <i data-lucide="flag" class="priority-flag-icon icon-${priority}"></i>
+                            </button>
+                            <div class="priority-dropdown-menu hidden">
+                                <div class="priority-dropdown-option ${priority === 'high' ? 'active' : ''}" data-priority="high">
+                                    <i data-lucide="flag" class="priority-flag-icon icon-high"></i>
+                                    <span>Высокий</span>
+                                </div>
+                                <div class="priority-dropdown-option ${priority === 'medium' ? 'active' : ''}" data-priority="medium">
+                                    <i data-lucide="flag" class="priority-flag-icon icon-medium"></i>
+                                    <span>Средний</span>
+                                </div>
+                                <div class="priority-dropdown-option ${priority === 'none' ? 'active' : ''}" data-priority="none">
+                                    <i data-lucide="flag" class="priority-flag-icon icon-none"></i>
+                                    <span>Обычный</span>
+                                </div>
                             </div>
                         </div>
+                        <button class="btn-delete-todo" title="Удалить задачу">
+                            <i data-lucide="trash-2"></i>
+                        </button>
                     </div>
-                    <button class="btn-delete-todo" title="Удалить задачу">
-                        <i data-lucide="trash-2"></i>
-                    </button>
+                </div>
+                <div class="todo-comments-section ${isCommentsExpanded ? '' : 'hidden'}">
+                    <div class="comments-list">
+                        ${comments.map(c => `
+                            <div class="comment-item" data-comment-id="${c.id}">
+                                <div class="comment-content">
+                                    <div class="comment-text">${escapeHTML(c.text)}</div>
+                                    <div class="comment-date">${formatDate(c.createdAt)}</div>
+                                </div>
+                                <button class="btn-delete-comment" title="Удалить комментарий" data-comment-id="${c.id}">
+                                    <i data-lucide="x"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                        ${comments.length === 0 ? `<div class="empty-comments">Нет комментариев</div>` : ''}
+                    </div>
+                    <form class="form-add-comment" data-todo-id="${todo.id}">
+                        <input type="text" class="input-new-comment" placeholder="Написать комментарий..." required autocomplete="off">
+                        <button type="submit" class="btn-add-comment" title="Добавить комментарий">
+                            <i data-lucide="send"></i>
+                        </button>
+                    </form>
                 </div>
             `;
             
@@ -495,6 +532,31 @@ function renderTasks() {
                 toggleTodo(todo.id);
             });
             
+            // Toggle Comments Button Click Event
+            const btnToggleComments = li.querySelector('.btn-toggle-comments');
+            btnToggleComments.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleTodoCommentsExpanded(todo.id);
+            });
+
+            // Add Comment Form Submit Event
+            const formAddComment = li.querySelector('.form-add-comment');
+            formAddComment.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = formAddComment.querySelector('.input-new-comment');
+                addCommentToTodo(todo.id, input.value);
+            });
+
+            // Delete Comment Click Event
+            const btnDeleteComments = li.querySelectorAll('.btn-delete-comment');
+            btnDeleteComments.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const commentId = btn.dataset.commentId;
+                    deleteCommentFromTodo(todo.id, commentId);
+                });
+            });
+
             // Priority Button Click Event
             const btnPriority = li.querySelector('.btn-todo-priority');
             const menuPriority = li.querySelector('.priority-dropdown-menu');
@@ -608,11 +670,53 @@ function addTodo(text, priority = 'none') {
         completed: false,
         tab: state.activeTab,
         createdAt: Date.now(),
-        priority: priority
+        priority: priority,
+        comments: []
     };
     
     state.todos.push(newTodo);
     saveState();
+    render();
+}
+
+// Add Comment to Todo Task
+function addCommentToTodo(todoId, text) {
+    const cleanText = text.trim();
+    if (!cleanText) return;
+    
+    const todo = state.todos.find(t => t.id === todoId);
+    if (todo) {
+        if (!todo.comments) {
+            todo.comments = [];
+        }
+        todo.comments.push({
+            id: generateUUID(),
+            text: cleanText,
+            createdAt: Date.now()
+        });
+        expandedCommentsTodoIds.add(todoId);
+        saveState();
+        render();
+    }
+}
+
+// Delete Comment from Todo Task
+function deleteCommentFromTodo(todoId, commentId) {
+    const todo = state.todos.find(t => t.id === todoId);
+    if (todo && todo.comments) {
+        todo.comments = todo.comments.filter(c => c.id !== commentId);
+        saveState();
+        render();
+    }
+}
+
+// Toggle comments visibility for a todo item
+function toggleTodoCommentsExpanded(todoId) {
+    if (expandedCommentsTodoIds.has(todoId)) {
+        expandedCommentsTodoIds.delete(todoId);
+    } else {
+        expandedCommentsTodoIds.add(todoId);
+    }
     render();
 }
 
@@ -1393,10 +1497,26 @@ function exportToPDF() {
                     const statusText = todo.completed ? 'Выполнено' : 'Активно';
                     const statusClass = todo.completed ? 'completed' : 'active';
                     const priorityClass = todo.priority || 'none';
+                    let commentsHTML = '';
+                    if (todo.comments && todo.comments.length > 0) {
+                        commentsHTML = `
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px; font-weight: normal; font-style: normal;">
+                                💬 <strong>Комментарии (${todo.comments.length}):</strong>
+                                ${todo.comments.map(c => `
+                                    <div style="padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px; text-decoration: none;">
+                                        • ${escapeHTML(c.text)} <span style="font-size:0.7rem; color:#94a3b8;">(${formatDate(c.createdAt)})</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
                     
                     contentHTML += `
                         <tr>
-                            <td style="font-weight: 500; ${todo.completed ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${escapeHTML(todo.text)}</td>
+                            <td style="font-weight: 500; ${todo.completed ? 'text-decoration: line-through; color: #94a3b8;' : ''}">
+                                ${escapeHTML(todo.text)}
+                                ${commentsHTML}
+                            </td>
                             <td><span class="pdf-badge-priority ${priorityClass}">${priorityText}</span></td>
                             <td><span class="pdf-badge-status ${statusClass}">${statusText}</span></td>
                             <td style="font-size: 0.8rem; color: #64748b;">${formatDate(todo.createdAt)}</td>
@@ -1861,10 +1981,26 @@ function exportListToPDF() {
                     const statusText = todo.completed ? 'Выполнено' : 'Активно';
                     const statusClass = todo.completed ? 'completed' : 'active';
                     const priorityClass = todo.priority || 'none';
+                    let commentsHTML = '';
+                    if (todo.comments && todo.comments.length > 0) {
+                        commentsHTML = `
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px; font-weight: normal; font-style: normal;">
+                                💬 <strong>Комментарии (${todo.comments.length}):</strong>
+                                ${todo.comments.map(c => `
+                                    <div style="padding-left: 8px; border-left: 2px solid #cbd5e1; margin-top: 2px; text-decoration: none;">
+                                        • ${escapeHTML(c.text)} <span style="font-size:0.7rem; color:#94a3b8;">(${formatDate(c.createdAt)})</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
                     
                     contentHTML += `
                         <tr>
-                            <td style="font-weight: 500; ${todo.completed ? 'text-decoration: line-through; color: #94a3b8;' : ''}">${escapeHTML(todo.text)}</td>
+                            <td style="font-weight: 500; ${todo.completed ? 'text-decoration: line-through; color: #94a3b8;' : ''}">
+                                ${escapeHTML(todo.text)}
+                                ${commentsHTML}
+                            </td>
                             <td><span class="pdf-badge-priority ${priorityClass}">${priorityText}</span></td>
                             <td><span class="pdf-badge-status ${statusClass}">${statusText}</span></td>
                             <td style="font-size: 0.8rem; color: #64748b;">${formatDate(todo.createdAt)}</td>
