@@ -256,7 +256,7 @@ input {
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid transparent;
-    user-select: none;
+    /* user-select: none; */
     position: relative;
     overflow: hidden;
 }
@@ -930,7 +930,7 @@ body.light-theme .btn-todo-priority:hover {
     width: 24px;
     height: 24px;
     cursor: pointer;
-    user-select: none;
+    /* user-select: none; */
 }
 
 .checkbox-container input {
@@ -988,7 +988,7 @@ body.light-theme .btn-todo-priority:hover {
     white-space: pre-wrap;
     word-break: break-word;
     transition: all 0.3s ease;
-    user-select: none;
+    /* user-select: none; */
     position: relative;
 }
 
